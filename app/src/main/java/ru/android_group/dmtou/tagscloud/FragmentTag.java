@@ -1,9 +1,8 @@
 package ru.android_group.dmtou.tagscloud;
 
 /**
- * Created by DmTou on 19.05.2016.
+ * Created by DmTou on 20.05.2016.
  */
-
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -15,18 +14,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import ru.android_group.dmtou.tagscloud.FragmentTag;
 
-public class FragmentMain extends Fragment implements View.OnClickListener {
+public class FragmentTag extends Fragment implements View.OnClickListener{
 
     private static final int[] IDLAYOUTS = {10000,10001,10002};
     private static final int[] ID = { 0,1,2,3,4,5,6,7,8,9 };
     private Button[] mainSpisok = new Button[10];
     private int k = 1;
-    FragmentTag fragmentTag;
-    FragmentManager fragmentManager;
-    FragmentTransaction transaction;
-    private String frStack = "frStack";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,6 +33,7 @@ public class FragmentMain extends Fragment implements View.OnClickListener {
         LinearLayout.LayoutParams lllp0 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
         layoutMain.setOrientation(LinearLayout.VERTICAL);
         layoutMain.setLayoutParams(lllp0);
+        //context.addContentView(layoutMain,lllp0);
 
         LinearLayout layoutAdd = new LinearLayout(context);
         layoutAdd.setOrientation(LinearLayout.VERTICAL);
@@ -49,7 +45,7 @@ public class FragmentMain extends Fragment implements View.OnClickListener {
         //                    //Кнопка ДОБАВИТЬ
         Button addTag = new Button(context);
         addTag.setId(ID[0]);
-        addTag.setText("Добавить тег");
+        addTag.setText("Добавить дочерний тег");
         LinearLayout.LayoutParams lllp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
         lllp2.gravity = Gravity.RIGHT;
         addTag.setLayoutParams(lllp2);
@@ -68,15 +64,14 @@ public class FragmentMain extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v){
-        //                  //Обработчик нажатия на кнопку добавить (максимум 10 тегов)
-        Context context = getActivity().getApplicationContext();
         switch (v.getId()) {
             case 0:{
                 if (k<10) {
+                    Context context = getActivity().getApplicationContext();
                     LinearLayout layoutTags = (LinearLayout) getView().findViewById(IDLAYOUTS[2]);
                     mainSpisok[k] = new Button(context);
                     mainSpisok[k].setId(ID[k]);
-                    mainSpisok[k].setText("Элемент " + String.valueOf(ID[k]) + " главного списка");
+                    mainSpisok[k].setText("Элемент " + String.valueOf(ID[k]) + " дочернего списка");
                     mainSpisok[k].setLayoutParams(new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     mainSpisok[k].setOnClickListener(this);
@@ -85,16 +80,7 @@ public class FragmentMain extends Fragment implements View.OnClickListener {
                 }
             }
             break;
-            default:{
-                fragmentManager = getFragmentManager();
-                fragmentTag = new FragmentTag();
-                transaction = fragmentManager.beginTransaction();
-                transaction.hide(this);
-                transaction.add(IDLAYOUTS[0],fragmentTag);
-                transaction.addToBackStack(frStack);
-                transaction.commit();
-            }
         }
-
     }
+
 }

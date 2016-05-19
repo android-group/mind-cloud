@@ -11,8 +11,10 @@ import android.widget.LinearLayout;
 import android.widget.Button;
 import ru.android_group.dmtou.tagscloud.FragmentMain;
 
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
+    private String frStack = "frStack";
     private static final int[] ID = { 0,1,2,3,4,5,6,7,8,9 };  //ID тегов
     private Button[] mainSpisok = new Button[10];              //список тегов (заменить на label)
     private int k = 1;                                       //начальный номер ID тегов (0 под кнопку добавить)
@@ -43,4 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v){
 
     }
+
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() > 0 ){
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }
