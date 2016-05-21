@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.Button;
 import ru.android_group.dmtou.tagscloud.FragmentMain;
 
-
+//тест
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private String frStack = "frStack";
@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             getFragmentManager().popBackStack();
         } else {
             super.onBackPressed();
+            k+=3;
         }
     }
 
