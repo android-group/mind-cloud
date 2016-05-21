@@ -1,12 +1,9 @@
 package ru.android_group.dmtou.tagscloud;
 
-/**
- * Created by DmTou on 20.05.2016.
- */
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,72 +11,76 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 public class FragmentTag extends Fragment implements View.OnClickListener{
 
-    private static final int[] IDLAYOUTS = {10000,10001,10002};
-    private static final int[] ID = { 0,1,2,3,4,5,6,7,8,9 };
-    private Button[] mainSpisok = new Button[10];
-    private int k = 1;
-
+    LinearLayout layoutMainThoughts,layoutAddThoughts,layoutThouths;
+    private static final int IDMAL = 1_000_000_000; //ID Main Activity Layout
+    private static final int[] IDLAYOUTSF2 = {IDMAL+4,IDMAL+5,IDMAL+6}; //ID Fragment Layouts
+    private Button addThoughts;
+    private static final int IDADDTH = 2_000_000_001; //ID BUTTON "ADD" THOUGHTS
+    private int k = 2_000_000;
+    private final int indexk = k;
+    private ArrayList thoughts = new ArrayList();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         Context context = getActivity().getApplicationContext();
+        //                  //FRAGMENT THOUGHTS MAIN LAYOUT
+        layoutMainThoughts = new LinearLayout(context);
+        LinearLayout.LayoutParams lllpMainThoughts = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
+        layoutMainThoughts.setOrientation(LinearLayout.VERTICAL);
+        layoutMainThoughts.setId(IDLAYOUTSF2[0]);
+        layoutMainThoughts.setLayoutParams(lllpMainThoughts);
+        //                   //FRAGMENT TAGS LAYOUT ADD
+        layoutAddThoughts = new LinearLayout(context);
+        layoutAddThoughts.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lllpAddTh = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+        lllpAddTh.weight = 10;
+        layoutAddThoughts.setLayoutParams(lllpAddTh);
+        layoutAddThoughts.setId(IDLAYOUTSF2[1]);
+        layoutMainThoughts.addView(layoutAddThoughts,lllpAddTh);
+        //                    //BUTTON ADD THOUGHTS
+        addThoughts = new Button(context);
+        addThoughts.setId(IDADDTH);
+        addThoughts.setText("Добавить дочерний тег");
+        LinearLayout.LayoutParams lllpAddThB = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+        lllpAddThB.gravity = Gravity.RIGHT;
+        addThoughts.setLayoutParams(lllpAddThB);
+        addThoughts.setOnClickListener(this);
+        layoutAddThoughts.addView(addThoughts,lllpAddThB);
+        //                    //LAYOUT with Thoughts
+        layoutThouths = new LinearLayout(context);
+        layoutThouths.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lllpThoughts = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+        lllpThoughts.weight = 1;
+        layoutThouths.setId(IDLAYOUTSF2[2]);
+        layoutMainThoughts.addView(layoutThouths,lllpThoughts);
 
-        LinearLayout layoutMain = new LinearLayout(context);
-        LinearLayout.LayoutParams lllp0 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
-        layoutMain.setOrientation(LinearLayout.VERTICAL);
-        layoutMain.setLayoutParams(lllp0);
-        //context.addContentView(layoutMain,lllp0);
-
-        LinearLayout layoutAdd = new LinearLayout(context);
-        layoutAdd.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lllp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
-        lllp1.weight = 10;
-        layoutAdd.setLayoutParams(lllp1);
-        layoutAdd.setId(IDLAYOUTS[1]);
-        layoutMain.addView(layoutAdd,lllp1);
-        //                    //Кнопка ДОБАВИТЬ
-        Button addTag = new Button(context);
-        addTag.setId(ID[0]);
-        addTag.setText("Добавить дочерний тег");
-        LinearLayout.LayoutParams lllp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-        lllp2.gravity = Gravity.RIGHT;
-        addTag.setLayoutParams(lllp2);
-        addTag.setOnClickListener(this);
-        layoutAdd.addView(addTag,lllp2);
-        //                    //LAYOUT с тегами
-        LinearLayout layoutTags = new LinearLayout(context);
-        layoutTags.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lllp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
-        lllp3.weight = 1;
-        layoutTags.setId(IDLAYOUTS[2]);
-        layoutMain.addView(layoutTags,lllp3);
-
-        return layoutMain;
+        return layoutMainThoughts;
     }
 
     @Override
     public void onClick(View v){
-        switch (v.getId()) {
-            case 0:{
-                if (k<10) {
-                    Context context = getActivity().getApplicationContext();
-                    LinearLayout layoutTags = (LinearLayout) getView().findViewById(IDLAYOUTS[2]);
-                    mainSpisok[k] = new Button(context);
-                    mainSpisok[k].setId(ID[k]);
-                    mainSpisok[k].setText("Элемент " + String.valueOf(ID[k]) + " дочернего списка");
-                    mainSpisok[k].setLayoutParams(new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    mainSpisok[k].setOnClickListener(this);
-                    layoutTags.addView(mainSpisok[k]);
-                    k++;
-                }
-            }
-            break;
+        Context context = getActivity().getApplicationContext();
+        if (v.getId() == IDADDTH) {
+            TextView obj1 = new TextView(context);
+            obj1.setId(k);
+            obj1.setText("THOUGHT " + String.valueOf(k-indexk));
+            obj1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            obj1.setOnClickListener(this);
+            obj1.setTextSize(20);
+            obj1.setTextColor(Color.BLACK);
+            obj1.setTypeface(null, Typeface.ITALIC);
+            layoutThouths.addView(obj1);
+            thoughts.add(k-indexk,obj1);
+            k++;
         }
     }
 

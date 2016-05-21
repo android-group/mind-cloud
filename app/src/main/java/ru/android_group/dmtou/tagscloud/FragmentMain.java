@@ -1,13 +1,11 @@
 package ru.android_group.dmtou.tagscloud;
 
-/**
- * Created by DmTou on 19.05.2016.
- */
-
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,83 +13,90 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import ru.android_group.dmtou.tagscloud.FragmentTag;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 public class FragmentMain extends Fragment implements View.OnClickListener {
 
-    private static final int[] IDLAYOUTS = {10000,10001,10002};
-    private static final int[] ID = { 0,1,2,3,4,5,6,7,8,9 };
-    private Button[] mainSpisok = new Button[10];
-    private int k = 1;
+    private LinearLayout layoutMainTags,layoutAddTags,layoutTags;
+    private static final int IDMAL = 1_000_000_000; //ID Main Activity Layout
+    private static final int[] IDLAYOUTSF1 = {IDMAL+1,IDMAL+2,IDMAL+3}; //ID Fragment Layouts
+    private Button addTag;
+    private static final int IDADD = 2_000_000_000; //ID BUTTON "ADD" TAGS
+    private ArrayList tags = new ArrayList();
+    private int k = 1_000_000;
+    private final int indexk = k;
+
     FragmentTag fragmentTag;
     FragmentManager fragmentManager;
     FragmentTransaction transaction;
-    private String frStack = "frStack";
+    private String fragmentsStack = "frStack";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         Context context = getActivity().getApplicationContext();
-
-        LinearLayout layoutMain = new LinearLayout(context);
-        LinearLayout.LayoutParams lllp0 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
-        layoutMain.setOrientation(LinearLayout.VERTICAL);
-        layoutMain.setLayoutParams(lllp0);
-
-        LinearLayout layoutAdd = new LinearLayout(context);
-        layoutAdd.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lllp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
-        lllp1.weight = 10;
-        layoutAdd.setLayoutParams(lllp1);
-        layoutAdd.setId(IDLAYOUTS[1]);
-        layoutMain.addView(layoutAdd,lllp1);
-        //                    //Кнопка ДОБАВИТЬ
-        Button addTag = new Button(context);
-        addTag.setId(ID[0]);
+        //                  //FRAGMENT TAGS MAIN LAYOUT
+        layoutMainTags = new LinearLayout(context);
+        LinearLayout.LayoutParams lllpMainTags = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,LinearLayout.LayoutParams.FILL_PARENT);
+        layoutMainTags.setOrientation(LinearLayout.VERTICAL);
+        layoutMainTags.setId(IDLAYOUTSF1[0]);
+        layoutMainTags.setLayoutParams(lllpMainTags);
+        //                  //FRAGMENT TAGS LAYOUT ADD
+        layoutAddTags = new LinearLayout(context);
+        layoutAddTags.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lllpADD= new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+        lllpADD.weight = 10;
+        layoutAddTags.setLayoutParams(lllpADD);
+        layoutAddTags.setId(IDLAYOUTSF1[1]);
+        layoutMainTags.addView(layoutAddTags,lllpADD);
+        //                    //BUTTON ADD TAGS
+        addTag = new Button(context);
+        addTag.setId(IDADD);
         addTag.setText("Добавить тег");
         LinearLayout.LayoutParams lllp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
         lllp2.gravity = Gravity.RIGHT;
         addTag.setLayoutParams(lllp2);
         addTag.setOnClickListener(this);
-        layoutAdd.addView(addTag,lllp2);
-        //                    //LAYOUT с тегами
-        LinearLayout layoutTags = new LinearLayout(context);
+        layoutAddTags.addView(addTag,lllp2);
+        //                    //TAGS LAYOUT
+        layoutTags = new LinearLayout(context);
         layoutTags.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lllp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
         lllp3.weight = 1;
-        layoutTags.setId(IDLAYOUTS[2]);
-        layoutMain.addView(layoutTags,lllp3);
+        layoutTags.setId(IDLAYOUTSF1[2]);
+        layoutMainTags.addView(layoutTags,lllp3);
 
-        return layoutMain;
+        return layoutMainTags;
     }
 
     @Override
     public void onClick(View v){
-        //                  //Обработчик нажатия на кнопку добавить (максимум 10 тегов)
         Context context = getActivity().getApplicationContext();
-        switch (v.getId()) {
-            case 0:{
-                if (k<10) {
-                    LinearLayout layoutTags = (LinearLayout) getView().findViewById(IDLAYOUTS[2]);
-                    mainSpisok[k] = new Button(context);
-                    mainSpisok[k].setId(ID[k]);
-                    mainSpisok[k].setText("Элемент " + String.valueOf(ID[k]) + " главного списка");
-                    mainSpisok[k].setLayoutParams(new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    mainSpisok[k].setOnClickListener(this);
-                    layoutTags.addView(mainSpisok[k]);
-                    k++;
-                }
-            }
-            break;
-            default:{
+        if (v.getId() == IDADD) {
+            TextView obj1 = new TextView(context);
+            obj1.setId(k);
+            obj1.setText("TAG " + String.valueOf(k-indexk));
+            obj1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            obj1.setOnClickListener(this);
+            obj1.setTextSize(40);
+            obj1.setTextColor(Color.BLACK);
+            obj1.setTypeface(null, Typeface.BOLD_ITALIC);
+            layoutTags.addView(obj1);
+            tags.add(k-indexk,obj1);
+            k++;
+        }
+        else {
+            if (v.getClass().getName().equals("android.widget.TextView")) {
                 fragmentManager = getFragmentManager();
                 fragmentTag = new FragmentTag();
                 transaction = fragmentManager.beginTransaction();
                 transaction.hide(this);
-                transaction.add(IDLAYOUTS[0],fragmentTag);
-                transaction.addToBackStack(frStack);
+                transaction.add(IDMAL,fragmentTag);
+                transaction.addToBackStack(fragmentsStack);
                 transaction.commit();
             }
         }
