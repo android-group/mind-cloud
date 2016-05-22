@@ -1,5 +1,6 @@
 package ru.android_group.dmtou.tagscloud;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -8,14 +9,19 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -33,12 +39,14 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     RelativeLayout cloudRelativeLayout;
 
-    private static final String NEW_MIND_TITLE = "your mind ";
-
-    private static final String FRAGMENTS_STACK = "FRAGMENTS_STACK";
+    private static final String NEW_MIND_TITLE = "your mind";
 
     // массив из всех мыслей
     private ArrayList tags = new ArrayList();
+
+    private EditText activeMindET;
+
+    private Random random = new Random();
 
     /*
     * Размер экрана фрагмента
@@ -52,17 +60,50 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             indexMind = getArguments().getInt(ARG_PARAM_INDEX_MIND);
+            /*
+            * @TODO
+            * load from Data Base by 'indexMind'
+            * */
+        } else {
+            /*
+            * @TODO
+            * load main minds without parent
+            * */
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setIsEditActiveView(false);
+            }
+        });
+        return view;
     }
 
+    GestureDetectorCompat gestureDetector;
+
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        gestureDetector = new GestureDetectorCompat(getActivity(), new GestureDetector.SimpleOnGestureListener(){
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                openSubCloudByView(activeMindET);
+                return super.onSingleTapConfirmed(e);
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                setIsEditActiveView(true);
+                return false;
+            }
+        });
 
         /*
         * Находим главный лайаут в xml, для добавления в него тегов
@@ -74,8 +115,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         * */
         Point size = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-        cloudHeight = size.y / 2;
-        cloudWidth = size.x / 2;
+        cloudHeight = (size.y / 3) * 2;
+        cloudWidth = (size.x / 3) * 2;
         Log.i(TAG, "Открыли новое облако cloud_relative_layout: width (" + cloudWidth + ") ,height (" + cloudHeight + ")");
 
         /*
@@ -90,39 +131,59 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         * тогда добавляем 'мысль' по середине экрана
         * */
         if(indexMind != -1) {
-            addMind(indexMind);
+            addMind(indexMind, 0, 0);
+        }
+    }
+
+
+
+    private void setIsEditActiveView(boolean focusableInTouchMode) {
+        if(activeMindET == null) {
+            return;
+        }
+
+        activeMindET.setFocusableInTouchMode(focusableInTouchMode);
+        activeMindET.setFocusable(focusableInTouchMode);
+        if(!focusableInTouchMode) {
+            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(activeMindET.getWindowToken(), 0);
         }
     }
 
     /*
     * Добавление 'мысли' в рандомное место на экран (но не больше чем cloudHeight, cloudWidth)
     * */
-    private void addMind(int mainIndexMind) {
-        Log.i(TAG, "Добавляем новую мысль с id: " + mainIndexMind);
-        TextView newMind = new TextView(getContext());
-        newMind.setId(mainIndexMind);
+    private void addMind(int newId, int leftMargin, int topMargin) {
+        Log.i(TAG, "Добавляем новую мысль с id: " + newId);
+        EditText newMindEditText = new EditText(getContext());
+        newMindEditText.setId(newId);
+        newMindEditText.setGravity(Gravity.CENTER);
+        String title = String.format("%s %d", NEW_MIND_TITLE, newId);
+        newMindEditText.setText(title);
+        newMindEditText.setFocusableInTouchMode(false);
+        newMindEditText.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        String title = String.format("%s%d", NEW_MIND_TITLE, mainIndexMind);
-        newMind.setText(title);
-
-        newMind.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        newMind.setOnClickListener(this);
-        newMind.setTextSize(40);
-        newMind.setTextColor(Color.BLACK);
-        newMind.setTypeface(null, Typeface.BOLD_ITALIC);
+        newMindEditText.setTextSize(40);
+        newMindEditText.setTextColor(Color.BLACK);
+        newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
 
         // Добавить 'мысль' на страницу в рандомное место
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        Random random = new Random();
-        params.leftMargin = random.nextInt(cloudWidth);
-        params.topMargin = random.nextInt(cloudHeight);
-        newMind.setLayoutParams(params);
 
-        cloudRelativeLayout.addView(newMind);
+        params.setMargins(leftMargin, topMargin, 0, 0);
+        newMindEditText.setLayoutParams(params);
+
+        cloudRelativeLayout.addView(newMindEditText);
+
+        newMindEditText.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                activeMindET = (EditText) v;
+                return gestureDetector.onTouchEvent(event);
+            }
+        });
 
         // @TODO сохранение в БД
-        tags.add(newMind);
+        tags.add(newMindEditText);
         Log.i(TAG, "Добавили новую мысль на позицию: leftMargin" + params.leftMargin + ",topMargin" + params.topMargin);
     }
 
@@ -130,17 +191,18 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         if (v.getId() == R.id.new_mind_btn) {
             Log.i(TAG, "Клик по кнопке New");
-            addMind(subIndexMind);
+            int leftMargin = random.nextInt(cloudWidth);
+            int topMargin = random.nextInt(cloudHeight);
+            addMind(subIndexMind, leftMargin, topMargin);
             subIndexMind++;
-        } else {
-            Log.i(TAG, "Клик по мысли с id: " + v.getId());
-            if (v.getClass().getName().equals("android.widget.TextView")) {
-
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                Bundle bundle = new Bundle();
-                intent.putExtra(ARG_PARAM_INDEX_MIND, v.getId());
-                startActivity(intent);
-            }
         }
+    }
+
+    private void openSubCloudByView(View v) {
+        Log.i(TAG, "Клик по мысли с id: " + v.getId());
+
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.putExtra(ARG_PARAM_INDEX_MIND, v.getId());
+        startActivity(intent);
     }
 }
