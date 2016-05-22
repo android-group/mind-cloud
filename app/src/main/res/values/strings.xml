@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Tagscloud</string>
+    <string name="app_name">MindCloud</string>
+    <string name="new_mind_btn">New</string>
 </resources>
