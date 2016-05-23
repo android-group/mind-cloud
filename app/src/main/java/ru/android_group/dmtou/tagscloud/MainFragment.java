@@ -1,7 +1,11 @@
 package ru.android_group.dmtou.tagscloud;
 
+import android.app.Application;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -42,8 +46,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private static final String NEW_MIND_TITLE = "your mind";
 
     // массив из всех мыслей
-    private ArrayList tags = new ArrayList();
-
+    //private ArrayList tags = new ArrayList();
+    TagsDBHelper tagsDBHelper;
     private EditText activeMindET;
 
     private Random random = new Random();
@@ -58,17 +62,63 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        tagsDBHelper = new TagsDBHelper(getContext());
         if (getArguments() != null) {
             indexMind = getArguments().getInt(ARG_PARAM_INDEX_MIND);
             /*
             * @TODO
             * load from Data Base by 'indexMind'
             * */
+            /*Cursor c = db.query("TagsTable",null,null,null,null,null,null);
+            if (c.moveToFirst()) {
+
+                // определяем номера столбцов по имени в выборке
+                int idColIndex = c.getColumnIndex("id");
+                int tag_nameColIndex = c.getColumnIndex("tag_name");
+                int printColIndex = c.getColumnIndex("print");
+                int sizeColIndex = c.getColumnIndex("size");
+                int bold_italicColIndex = c.getColumnIndex("bold_italic");
+
+                do {
+                    subIndexMind = c.getInt(idColIndex);
+                    String tag_name = c.getString(tag_nameColIndex);
+                    String print = c.getString(printColIndex);
+                    double size_text = c.getFloat(sizeColIndex);
+                    String bold_italic = c.getString(bold_italicColIndex);
+                    int leftMargin = 10;//random.nextInt(cloudWidth);
+                    int topMargin = 10;//random.nextInt(cloudHeight);
+                    addMind(subIndexMind, leftMargin, topMargin,tag_name,print,size_text,bold_italic);
+                    subIndexMind++;
+                } while (c.moveToNext());
+            }*/
         } else {
             /*
             * @TODO
             * load main minds without parent
             * */
+            /*Cursor c = db.query("TagsTable",null,null,null,null,null,null);
+            if (c.moveToFirst()) {
+
+                // определяем номера столбцов по имени в выборке
+                int idColIndex = c.getColumnIndex("id");
+                int tag_nameColIndex = c.getColumnIndex("tag_name");
+                int printColIndex = c.getColumnIndex("print");
+                int sizeColIndex = c.getColumnIndex("size");
+                int bold_italicColIndex = c.getColumnIndex("bold_italic");
+
+                do {
+                    subIndexMind = c.getInt(idColIndex);
+                    String tag_name = c.getString(tag_nameColIndex);
+                    String print = c.getString(printColIndex);
+                    double size_text = c.getFloat(sizeColIndex);
+                    String bold_italic = c.getString(bold_italicColIndex);
+                    int leftMargin = 10;//random.nextInt(cloudWidth);
+                    int topMargin = 10;//random.nextInt(cloudHeight);
+                    addMind(subIndexMind, leftMargin, topMargin,tag_name,print,size_text,bold_italic);
+
+                } while (c.moveToNext());
+                subIndexMind++;
+            }*/
         }
     }
 
@@ -125,14 +175,39 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         Button newMindBtn = (Button) view.findViewById(R.id.new_mind_btn);
         newMindBtn.setOnClickListener(this);
 
+        SQLiteDatabase db = tagsDBHelper.getWritableDatabase();
+        Cursor c = db.query("TagsTable",null,null,null,null,null,null);
+        if (c.moveToFirst()) {
+
+            // определяем номера столбцов по имени в выборке
+            int idColIndex = c.getColumnIndex("id");
+            int tag_nameColIndex = c.getColumnIndex("tag_name");
+            int printColIndex = c.getColumnIndex("print");
+            int sizeColIndex = c.getColumnIndex("size");
+            int bold_italicColIndex = c.getColumnIndex("bold_italic");
+
+            do {
+                subIndexMind = c.getInt(idColIndex);
+                String tag_name = c.getString(tag_nameColIndex);
+                String print = c.getString(printColIndex);
+                float size_text = c.getFloat(sizeColIndex);
+                String bold_italic = c.getString(bold_italicColIndex);
+                int leftMargin = random.nextInt(cloudWidth);
+                int topMargin = random.nextInt(cloudHeight);
+                addMind(subIndexMind, leftMargin, topMargin,tag_name,print,size_text,bold_italic,true);
+
+            } while (c.moveToNext());
+            subIndexMind++;
+        }
+
         /*
         * @TODO
         * Если этот фрагмент открылся с параметром - старый фрагмент,
         * тогда добавляем 'мысль' по середине экрана
         * */
-        if(indexMind != -1) {
-            addMind(indexMind, 0, 0);
-        }
+        /*if(indexMind != -1) {
+            addMind(indexMind, 0, 0,"","",-1.0,"");
+        }*/
     }
 
 
@@ -153,26 +228,38 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     /*
     * Добавление 'мысли' в рандомное место на экран (но не больше чем cloudHeight, cloudWidth)
     * */
-    private void addMind(int newId, int leftMargin, int topMargin) {
+    private void addMind(int newId, int leftMargin, int topMargin, String loaded_tag_name, String loaded_print, float loaded_size, String loaded_state, boolean flag) {
         Log.i(TAG, "Добавляем новую мысль с id: " + newId);
         EditText newMindEditText = new EditText(getContext());
         newMindEditText.setId(newId);
         newMindEditText.setGravity(Gravity.CENTER);
-        String title = String.format("%s %d", NEW_MIND_TITLE, newId);
+        String title="";
+        if (loaded_tag_name.equals("")) title = String.format("%s %d", NEW_MIND_TITLE, newId); else title = String.format("%s %d", loaded_tag_name, newId);
         newMindEditText.setText(title);
         newMindEditText.setFocusableInTouchMode(false);
         newMindEditText.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        newMindEditText.setTextSize(40);
+        /*
+           * @TODO
+           * load print
+        */
+        if (loaded_size == -1.0f) newMindEditText.setTextSize(40); else newMindEditText.setTextSize(loaded_size/10);
         newMindEditText.setTextColor(Color.BLACK);
-        newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
+        if (loaded_state.equals("")) newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
+            else {
+                switch (loaded_state) {
+                    case "00": newMindEditText.setTypeface(null, Typeface.NORMAL); break;
+                    case "01": newMindEditText.setTypeface(null, Typeface.ITALIC); break;
+                    case "10": newMindEditText.setTypeface(null, Typeface.BOLD); break;
+                    case "11": newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC); break;
+                }
+        }
 
         // Добавить 'мысль' на страницу в рандомное место
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         params.setMargins(leftMargin, topMargin, 0, 0);
         newMindEditText.setLayoutParams(params);
-
         cloudRelativeLayout.addView(newMindEditText);
 
         newMindEditText.setOnTouchListener(new View.OnTouchListener() {
@@ -183,8 +270,30 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         });
 
         // @TODO сохранение в БД
-        tags.add(newMindEditText);
-        Log.i(TAG, "Добавили новую мысль на позицию: leftMargin" + params.leftMargin + ",topMargin" + params.topMargin);
+        //tags.add(newMindEditText);
+        if (!flag) {
+            ContentValues cv = new ContentValues();
+            String tag_name = newMindEditText.getText().toString();
+            String print = "";
+            float size_text = newMindEditText.getTextSize();
+            String bold_italic = "";
+        /*if (newMindEditText.getTypeface().isBold())
+            bold_italic = bold_italic + "1";
+                else bold_italic = bold_italic + "0";
+        if (newMindEditText.getTypeface().isItalic())
+            bold_italic = bold_italic + "1";
+        else bold_italic = bold_italic + "0";*/
+            cv.put("id", newId);
+            cv.put("tag_name", tag_name);
+            cv.put("print", print);
+            cv.put("size", size_text);
+            cv.put("bold_italic", bold_italic);
+            SQLiteDatabase db = tagsDBHelper.getWritableDatabase();
+            db.insert("TagsTable", null, cv);
+            db.close();
+            Log.i(TAG, "добавлена запись в БД");
+            Log.i(TAG, "Добавили новую мысль на позицию: leftMargin" + params.leftMargin + ",topMargin" + params.topMargin);
+        }
     }
 
     @Override
@@ -193,7 +302,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             Log.i(TAG, "Клик по кнопке New");
             int leftMargin = random.nextInt(cloudWidth);
             int topMargin = random.nextInt(cloudHeight);
-            addMind(subIndexMind, leftMargin, topMargin);
+            addMind(subIndexMind, leftMargin, topMargin, "", "", -1.0f ,"",false);
             subIndexMind++;
         }
     }
