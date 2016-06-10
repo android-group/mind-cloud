@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/mind-cloud.iml" filepath="$PROJECT_DIR$/mind-cloud.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tagscloud.iml" filepath="$PROJECT_DIR$/tagscloud.iml" />
     </modules>
   </component>
 </project>
