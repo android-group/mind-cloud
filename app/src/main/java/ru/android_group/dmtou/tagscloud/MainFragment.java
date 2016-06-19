@@ -1,11 +1,8 @@
 package ru.android_group.dmtou.tagscloud;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -30,17 +27,18 @@ import android.widget.Toast;
 
 import java.util.Stack;
 
+import static ru.android_group.dmtou.tagscloud.DatabaseHelper.*;
+import static ru.android_group.dmtou.tagscloud.DatabaseHelper.EventDB.*;
+
 public class MainFragment extends Fragment implements View.OnClickListener {
 
 
     private static final String TAG = "MainFragment";
     private static final String ARG_PARAM_INDEX_MIND = "ARG_PARAM_INDEX_MIND";
     private RelativeLayout cloudRelativeLayout;
-    // массив из всех мыслей
-    //private ArrayList tags = new ArrayList();
-    TagsDBHelper tagsDBHelper;
+    DatabaseHelper databaseHelper;
     GestureDetectorCompat gestureDetector;
-    private int indexMind = -1;
+    private int indexMind = 0;
     @IdRes
     private int subIndexMind = 0;
     private EditText activeMindET;
@@ -51,11 +49,12 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     * */
     private int cloudX;
     private int cloudY;
+    private static float LOADED_SIZE = -1.0f;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        tagsDBHelper = new TagsDBHelper(getContext());
+        databaseHelper = new DatabaseHelper(getContext());
         if (getArguments() != null) {
             indexMind = getArguments().getInt(ARG_PARAM_INDEX_MIND);
         }
@@ -112,7 +111,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         /*
         * Добавляем слушательна кнопку New
         * */
-        newMindET = (EditText) view.findViewById(R.id.new_mind_tv);
+        newMindET = (EditText) view.findViewById(R.id.new_mind_et);
         newMindET.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -127,48 +126,13 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         Button newMindBtn = (Button) view.findViewById(R.id.new_mind_btn);
         newMindBtn.setOnClickListener(this);
 
-        SQLiteDatabase db = tagsDBHelper.getReadableDatabase();
-        Cursor c = db.query("TagsTable", null, null, null, null, null, null);
-        if (c.moveToFirst()) {
-
-            // определяем номера столбцов по имени в выборке
-            int idColIndex = c.getColumnIndex("id");
-            int tagNameColIndex = c.getColumnIndex("tag_name");
-            // int printColIndex = c.getColumnIndex("print");
-            int sizeColIndex = c.getColumnIndex("size");
-            int boldItalicColIndex = c.getColumnIndex("bold_italic");
-            int parentIdColIndex = c.getColumnIndex("parent_id");
-
-            do {
-                int parent_id = c.getInt(parentIdColIndex);
-                //subIndexMind++;
-                if (parent_id == indexMind) {
-                    subIndexMind = c.getInt(idColIndex);
-                    String tagName = c.getString(tagNameColIndex);
-                    double sizeText = c.getFloat(sizeColIndex);
-                    String boldItalic = c.getString(boldItalicColIndex);
-
-                    if(!availablePlaces.isEmpty()) {
-                        AvailablePlace place = availablePlaces.pop();
-                        place.setName(tagName);
-                        addMind(subIndexMind, place, sizeText, boldItalic, EventDB.NOTHING);
-                    }
-                } else subIndexMind++;
-
-            } while (c.moveToNext());
-            subIndexMind++;
+        for (Mind mind : databaseHelper.getAll(indexMind)) {
+            if(!availablePlaces.isEmpty()) {
+                AvailablePlace place = availablePlaces.pop();
+                place.setName(mind.getTagName());
+                addMind(mind.getSubIndexMind(), place, mind.getSizeText(), mind.getTypeface(), NOTHING);
+            }
         }
-
-        /*
-        * @TODO
-        * Если этот фрагмент открылся с параметром - старый фрагмент,
-        * тогда добавляем 'мысль' по середине экрана
-        * */
-        /*if(indexMind != -1) {
-            addMind(indexMind, 0, 0,"","",-1.0,"");
-        }*/
-
-
     }
 
     private Stack<AvailablePlace> availablePlaces = new Stack<>();
@@ -246,8 +210,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     /*
     * Добавление 'мысли' в рандомное место на экран (но не больше чем cloudY, cloudX)
     * */
-
-
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.new_mind_btn) {
@@ -270,7 +232,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         if(!availablePlaces.isEmpty() && newMindET.getText().length() > 0) {
             AvailablePlace availablePlace = availablePlaces.pop();
             availablePlace.setName(newMindET.getText().toString());
-            addMind(subIndexMind, availablePlace , -1.0f, "", EventDB.INSERT);
+
+            addMind(subIndexMind, availablePlace , LOADED_SIZE, Typeface.NORMAL, INSERT);
         }
         newMindET.setText("");
     }
@@ -283,7 +246,28 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         startActivity(intent);
     }
 
-    private void addMind(int newId, AvailablePlace place, double loadedSize, String loadedState, EventDB eventDB) {
+    private void update(int newId, String loadedTagName, String loadedPrint, double loadedSize, int typeface, EventDB eventDB) {
+        Toast.makeText(getContext(), eventDB.name(), Toast.LENGTH_LONG).show();
+        try {
+            switch (eventDB) {
+                case INSERT:
+                    databaseHelper.insert(newId, loadedTagName, loadedPrint, loadedSize, typeface, indexMind);
+                    break;
+                case UPDATE:
+                    // nothing @TODO
+                    break;
+                case DELETE:
+                    // nothing @TODO
+                    break;
+            }
+        } catch (SQLiteConstraintException e) {
+            Toast.makeText(getContext(), "Нельзя добавить мысль с таким же ID", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getContext(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void addMind(int newId, AvailablePlace place, double loadedSize, int typeface, EventDB eventDB) {
         Log.i(TAG, "Добавляем новую мысль с id: " + newId);
 
         EditText newMindEditText = new EditText(getActivity());
@@ -292,40 +276,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         newMindEditText.setFocusableInTouchMode(false);
         newMindEditText.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        /*
-           * @TODO
-           * load print
-        */
-        if (loadedSize == -1.0f) {
-            newMindEditText.setTextSize(20);
+        if (loadedSize == LOADED_SIZE) {
+            int defaultTextSize = 20;
+            newMindEditText.setTextSize(defaultTextSize);
         } else {
             newMindEditText.setTextSize((float) (loadedSize));
         }
 
         newMindEditText.setTextColor(Color.BLACK);
-        if (loadedState.equals("")) {
-            newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
-        } else {
-            switch (loadedState) {
-                case "00":
-                    newMindEditText.setTypeface(null, Typeface.NORMAL);
-                    break;
-                case "01":
-                    newMindEditText.setTypeface(null, Typeface.ITALIC);
-                    break;
-                case "10":
-                    newMindEditText.setTypeface(null, Typeface.BOLD);
-                    break;
-                case "11":
-                    newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
-                    break;
-            }
-        }
-
-        // Добавить 'мысль' на страницу в рандомное место
-        /*RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 0);
-        newMindEditText.setLayoutParams(params);*/
+        newMindEditText.setTypeface(null, Typeface.BOLD_ITALIC);
 
         newMindEditText.setX(place.getX());
         newMindEditText.setY(place.getY());
@@ -339,65 +298,14 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        // @TODO сохранение в БД
-        //tags.add(newMindEditText);
-        if (eventDB == EventDB.INSERT) {
+        if (eventDB == INSERT) {
             String tagName = newMindEditText.getText().toString();
             String print = "";
             double sizeText = newMindEditText.getTextSize();
-            String boldItalic = "";
-            if (newMindEditText.getTypeface().isBold()) {
-                boldItalic = boldItalic + "1";
-            } else {
-                boldItalic = boldItalic + "0";
-            }
 
-            if (newMindEditText.getTypeface().isItalic()) {
-                boldItalic = boldItalic + "1";
-            } else {
-                boldItalic = boldItalic + "0";
-            }
-
-            updateBD(newId, tagName, print, sizeText, boldItalic, eventDB);
+            update(newId, tagName, print, sizeText, newMindEditText.getTypeface().getStyle(), eventDB);
             Log.i(TAG, "Добавили новую мысль на позицию: x" + place.getX() + ",topMargin" + place.getY());
         }
         subIndexMind++;
-    }
-
-    private void updateBD(int newId, String loadedTagName, String loadedPrint, double loadedSize, String loadedState, EventDB eventDB) {
-        Toast.makeText(getContext(), eventDB.name(), Toast.LENGTH_LONG).show();
-        try {
-            switch (eventDB) {
-                case INSERT:
-                    ContentValues cv = new ContentValues();
-                    cv.put("id", newId);
-                    cv.put("tag_name", loadedTagName.replace("\n", ""));
-                    cv.put("print", loadedPrint);
-                    cv.put("size", loadedSize);
-                    cv.put("bold_italic", loadedState);
-                    cv.put("parent_id", indexMind);
-                    SQLiteDatabase db = tagsDBHelper.getWritableDatabase();
-                    db.insert("TagsTable", null, cv);
-                    db.close();
-                    Log.i(TAG, "добавлена запись в БД");
-                    break;
-                case UPDATE:
-                    break;
-                case DELETE:
-                    break;
-            }
-        } catch (SQLiteConstraintException e) {
-            Toast.makeText(getContext(), "Нельзя добавить мысль с таким же ID", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(getContext(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    enum EventDB {
-        NOTHING,
-        INSERT,
-        UPDATE,
-        DELETE;
     }
 }
