@@ -1,5 +1,6 @@
 package ru.android_group.dmtou.tagscloud;
 
+import android.app.Activity;
 import android.graphics.Point;
 import android.os.RemoteException;
 import android.support.test.InstrumentationRegistry;
@@ -12,16 +13,24 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.ParameterizedType;
+
+import ru.android_group.dmtou.tagscloud.pageObject.CloudPage;
+
 /**
- * Created by y.andreev on 19.06.2016.
+ * Класс предоставляет осномные возможности необходимые для тестирования интерфейса
  */
 @RunWith(AndroidJUnit4.class)
-public class MainTest {
-
-    protected MainActivity activity;
+public class TestUI<T extends Activity> {
 
     @Rule
-    public ActivityTestRule<MainActivity> activityActivityTestRule = new ActivityTestRule<>(MainActivity.class);
+    public ActivityTestRule<T> activityTestRule = new ActivityTestRule<T>(clazz());
+
+    private Class<T> clazz() {
+        return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+    }
+
+    protected Activity activity;
 
     protected DatabaseHelper database;
 
@@ -38,7 +47,7 @@ public class MainTest {
     * Оживляем телефон прежде чем запустить тест
     * */
     private void load() {
-        activity = activityActivityTestRule.getActivity();
+        activity = activityTestRule.getActivity();
 
         // init Page objects
         activity.deleteDatabase(DatabaseHelper.DB_NAME);

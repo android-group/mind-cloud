@@ -11,7 +11,7 @@ import java.util.List;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
-public class MainActivityTest extends MainTest {
+public class CloudTestUI extends TestUI<CloudActivity> {
 
     /*
     * Загрузка капчи и закрытие экрана по кнопки back

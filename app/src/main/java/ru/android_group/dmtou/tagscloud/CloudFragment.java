@@ -30,10 +30,10 @@ import java.util.Stack;
 import static ru.android_group.dmtou.tagscloud.DatabaseHelper.*;
 import static ru.android_group.dmtou.tagscloud.DatabaseHelper.EventDB.*;
 
-public class MainFragment extends Fragment implements View.OnClickListener {
+public class CloudFragment extends Fragment implements View.OnClickListener {
 
 
-    private static final String TAG = "MainFragment";
+    private static final String TAG = "CloudFragment";
     private static final String ARG_PARAM_INDEX_MIND = "ARG_PARAM_INDEX_MIND";
     private RelativeLayout cloudRelativeLayout;
     DatabaseHelper databaseHelper;
@@ -62,7 +62,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        View view = inflater.inflate(R.layout.fragment_cloud, container, false);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,7 +241,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     private void openSubCloudByView(View v) {
         Log.i(TAG, "Клик по мысли с id: " + v.getId());
 
-        Intent intent = new Intent(getContext(), MainActivity.class);
+        Intent intent = new Intent(getContext(), CloudActivity.class);
         intent.putExtra(ARG_PARAM_INDEX_MIND, v.getId());
         startActivity(intent);
     }

@@ -5,17 +5,17 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 
-public class MainActivity extends AppCompatActivity {
+public class CloudActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MainFragment mainFragment = new MainFragment();
-        mainFragment.setArguments(getIntent().getExtras());
+        CloudFragment cloudFragment = new CloudFragment();
+        cloudFragment.setArguments(getIntent().getExtras());
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.page_fragments, mainFragment, "MainFragment");
+        transaction.add(R.id.page_fragments, cloudFragment, "CloudFragment");
         transaction.commit();
     }
 }
