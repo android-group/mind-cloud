@@ -32,7 +32,7 @@ import static ru.android_group.dmtou.tagscloud.DatabaseHelper.EventDB.*;
 
 public class CloudFragment extends Fragment implements View.OnClickListener {
 
-
+    private static final int DEBUG_MODE = 1;
     private static final String TAG = "CloudFragment";
     private static final String ARG_PARAM_INDEX_MIND = "ARG_PARAM_INDEX_MIND";
     private RelativeLayout cloudRelativeLayout;
@@ -126,13 +126,19 @@ public class CloudFragment extends Fragment implements View.OnClickListener {
         Button newMindBtn = (Button) view.findViewById(R.id.new_mind_btn);
         newMindBtn.setOnClickListener(this);
 
+        String DEBUG_BUTTON_NAME = Integer.toString(indexMind) + "subindexes: ";
+
+
         for (Mind mind : databaseHelper.getAll(indexMind)) {
             if(!availablePlaces.isEmpty()) {
                 AvailablePlace place = availablePlaces.pop();
                 place.setName(mind.getTagName());
                 addMind(mind.getSubIndexMind(), place, mind.getSizeText(), mind.getTypeface(), NOTHING);
+                DEBUG_BUTTON_NAME  = DEBUG_BUTTON_NAME  + ' '+ Integer.toString(mind.getSubIndexMind());
             }
         }
+        subIndexMind = databaseHelper.getMaxIndexMindInDB();
+        if (DEBUG_MODE == 1) newMindBtn.setText(DEBUG_BUTTON_NAME  + " MaxIndex: " +Integer.toString(subIndexMind));
     }
 
     private Stack<AvailablePlace> availablePlaces = new Stack<>();
@@ -215,6 +221,7 @@ public class CloudFragment extends Fragment implements View.OnClickListener {
         if (v.getId() == R.id.new_mind_btn) {
             hideKeyBoard();
             Log.i(TAG, "Добавили по NEW");
+            subIndexMind++;
             addNewMindInRandomPlace();
         }
     }
@@ -306,6 +313,6 @@ public class CloudFragment extends Fragment implements View.OnClickListener {
             update(newId, tagName, print, sizeText, newMindEditText.getTypeface().getStyle(), eventDB);
             Log.i(TAG, "Добавили новую мысль на позицию: x" + place.getX() + ",topMargin" + place.getY());
         }
-        subIndexMind++;
+        //subIndexMind++;
     }
 }

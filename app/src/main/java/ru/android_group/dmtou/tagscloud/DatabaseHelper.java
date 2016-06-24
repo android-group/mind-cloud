@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -39,7 +40,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "--- onCreate database ---");
         db.execSQL("create table " + TABLE_NAME +
                 " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY autoincrement," +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_TAG_NAME + " text," +
                 COLUMN_PRINT + " text," +
                 COLUMN_SIZE + " double," +
@@ -88,13 +89,15 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
             do {
                 int parentId = c.getInt(parentIdColIndex);
-                if (parentId == indexMind) {
+                int curId = c.getInt(idColIndex);
+                if (parentId == indexMind || curId == indexMind) {
                     Mind mind = new Mind();
                     mind.setTagName(c.getString(tagNameColIndex));
                     mind.setSizeText(c.getFloat(sizeColIndex));
                     mind.setTypeface(c.getInt(boldItalicColIndex));
-                    mind.setSubIndexMind(c.getInt(idColIndex));
+                    mind.setSubIndexMind(curId);
                     list.add(mind);
+                    if (curId == indexMind) Collections.swap(list, 0, list.size()-1);
                 }
             } while (c.moveToNext());
         }
@@ -106,6 +109,19 @@ class DatabaseHelper extends SQLiteOpenHelper {
         NOTHING,
         INSERT,
         UPDATE,
-        DELETE;
+        DELETE
+    }
+
+    public int getMaxIndexMindInDB() {
+        int MaxId = 0; //значение по умолчанию
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.query(TABLE_NAME, null, null, null, null, null, null);
+        if (c.moveToFirst()) {
+            int idColIndex = c.getColumnIndex(COLUMN_ID);
+            do{
+                if (c.getInt(idColIndex) > MaxId)  MaxId = c.getInt(idColIndex);  //новое значение, присутствующее в таблице
+            }while (c.moveToNext());
+        }
+        return MaxId;
     }
 }

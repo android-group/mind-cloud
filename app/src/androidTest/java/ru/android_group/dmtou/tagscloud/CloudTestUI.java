@@ -29,8 +29,9 @@ public class CloudTestUI extends TestUI<CloudActivity> {
         cloudPage.writeMind(RandomStringUtils.randomNumeric(randomCount));
         cloudPage.clickNewBtn();
 
-        List<Mind> all = database.getAll(0);
-        assertThat(all.size(), is(2));
+        //List<Mind> all = database.getAll(0);
+        assertThat(database.getMaxIndexMindInDB(), is(2));
+        //assertThat(all.size(), is(2));
 
         Spoon.screenshot(activity, "end");
     }

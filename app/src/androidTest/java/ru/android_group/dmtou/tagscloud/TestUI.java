@@ -11,6 +11,7 @@ import android.support.test.uiautomator.UiDevice;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.ParameterizedType;
@@ -56,7 +57,6 @@ public class TestUI<T extends Activity> {
         database = new DatabaseHelper(activity);
 
     }
-
     private void wakeUpDevice() {
         UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         Point[] coordinates = new Point[4];
